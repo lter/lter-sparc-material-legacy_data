@@ -1,6 +1,6 @@
-# [Group Type] Group Title
+# LTER SPARC Group: Material Legacy Effects
 
-Principal Investigators: _Name, Name, ..._
+Principal Investigators: _Dr. Kai L. Kopecky, Dr. Katharine N. Suding, Dr. Ty A. Tuff_
 
 ## Script Explanations
 
