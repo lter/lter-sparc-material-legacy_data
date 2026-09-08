@@ -18,18 +18,12 @@ rm(list = ls()); gc()
 site_abbrev <- "AND"
 
 ## -------------------------------------------- ##
-# Authenticate with EDI ----
+# Authentication with EDI ----
 ## -------------------------------------------- ##
-# Due to a number of DDoS attacks on EDI, you need to authenticate before being able to download data
-# For instructions, see either of the following:
-## YouTube Tutorial -- < https://youtu.be/fieZSmHk2H4?si=Wo9a5GsAOYp3dnWS >
-## Identity & Access Manager (IAM) -- < https://auth.edirepository.org >
-
-# Once you have a key,
-## 1. Create a file in the top-level of this folder called "secret_my-edi-key.md"
-### DO NOT COMMIT THIS FILE! 
-### The above name has been preemptively added to the `.gitignore` but if you name it something else, you'll be at risk of committing it
-## 2. Copy/paste it into the "Console" of your IDE when prompted by the following code
+# The following code will prompt you to define your EDI Access Key
+## !!! Make one _before_ attempting to run this code !!!
+## See the README of this folder for details: 
+### https://github.com/lter/lter-sparc-material-legacy_data/tree/main/00_download-data#edi-authentication
 
 # Define your EDI key
 (edi_key <- readline(prompt = "Copy/paste your EDI Access Key here: "))
