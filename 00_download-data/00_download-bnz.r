@@ -1,5 +1,5 @@
 ## -------------------------------------------- ##
-# Download Data - Andrews Forest (AND)
+# Download Data - Bonanza Creek (BNZ)
 ## -------------------------------------------- ##
 # Purpose
 ## Download data from this site from the Environmental Data Initiative
@@ -15,7 +15,7 @@ source(file.path("-setup.r"))
 rm(list = ls()); gc()
 
 # Define 3-letter site abbreviation
-site_abbrev <- "AND"
+site_abbrev <- "BNZ"
 
 ## -------------------------------------------- ##
 # Authentication with EDI ----
@@ -39,8 +39,8 @@ options(HTTPUserAgent = "EDI_CodeGen")
 ## -------------------------------------------- ##
 
 # Iterate across package IDs
-for(pkg_id in c("knb-lter-and.4032.10", "knb-lter-and.2742.28")){
-  # pkg_id <- "knb-lter-and.4032.10"
+for(pkg_id in c("knb-lter-bnz.390.18")){
+  # pkg_id <- "knb-lter-bnz.390.18"
 
   # Check out data
   (ents <- EDIutils::read_data_entity_names(packageId = pkg_id))
@@ -72,12 +72,12 @@ for(pkg_id in c("knb-lter-and.4032.10", "knb-lter-and.2742.28")){
     in_file <- file.path("data", "raw",
       paste0("00_", site_abbrev, "__", focal_ent$entityName))
 
-      # If the entity is a data file, download it!
-      if(tools::file_ext(focal_ent$entityName) %in% c("txt", "csv", "xls", "xlsx")){
-        download.file(url = in_url, destfile =  in_file,
-          method = "curl", extra = paste0(' -A "', getOption("HTTPUserAgent"), '"')) 
-      } else { message("Skipping download because file is a ", 
-        tools::file_ext(focal_ent$entityName)) }    
+    # If the entity is a data file, download it!
+    if(tools::file_ext(focal_ent$entityName) %in% c("txt", "csv", "xls", "xlsx")){
+      download.file(url = in_url, destfile =  in_file,
+        method = "curl", extra = paste0(' -A "', getOption("HTTPUserAgent"), '"')) 
+    } else { message("Skipping download because file is a ", 
+      tools::file_ext(focal_ent$entityName)) }    
   }
 }
 
