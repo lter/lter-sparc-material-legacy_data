@@ -85,3 +85,6 @@ vignettes/*.pdf
 # Folders to ignore
 data/
 graphs/
+
+# Secrets
+secret_my-edi-key.*
