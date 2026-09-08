@@ -38,42 +38,44 @@ options(HTTPUserAgent = "EDI_CodeGen")
 # Download Data ----
 ## -------------------------------------------- ##
 
-# Define package ID
-pkg_id <- "knb-lter-and.4032.10"
+# Iterate across package IDs
+for(pkg_id in c("knb-lter-and.4032.10", "knb-lter-and.2742.28")){
+  # pkg_id <- "knb-lter-and.4032.10"
 
-# Check out data
-(ents <- EDIutils::read_data_entity_names(packageId = pkg_id))
+  # Check out data
+  (ents <- EDIutils::read_data_entity_names(packageId = pkg_id))
 
-# Loop across entities
-for(k in seq_along(ents$entityName)){
-  # k <- 2
+  # Loop across entities
+  for(k in seq_along(ents$entityName)){
+    # k <- 2
 
-  # Grab just that entity
-  focal_ent <- ents[k, ]
+    # Grab just that entity
+    focal_ent <- ents[k, ]
 
-  # Progress message
-  message("Downloading file ", k, " of ", nrow(ents))
-  
-  # Assemble URL to that entity
-  in_url <- paste0("https://pasta.lternet.edu/package/data/eml/",
-    gsub(pattern = "\\.", "/", x = pkg_id), "/",
-    focal_ent$entityId, "?key=", edi_key)
+    # Progress message
+    message("Downloading file ", k, " of ", nrow(ents))
+    
+    # Assemble URL to that entity
+    in_url <- paste0("https://pasta.lternet.edu/package/data/eml/",
+      gsub(pattern = "\\.", "/", x = pkg_id), "/",
+      focal_ent$entityId, "?key=", edi_key)
 
-  # Identify entity file type
-  ent_type <- tools::file_ext(focal_ent$entityName)
-  
-  # If unidentified, assume CSV
-  if(nchar(ent_type) == 0 | is.na(ent_type)){
-    focal_ent$entityName <- paste0(focal_ent$entityName, ".csv")
+    # Identify entity file type
+    ent_type <- tools::file_ext(focal_ent$entityName)
+    
+    # If unidentified, assume CSV
+    if(nchar(ent_type) == 0 | is.na(ent_type)){
+      focal_ent$entityName <- paste0(focal_ent$entityName, ".csv")
+    }
+    
+    # Assemble local file name
+    in_file <- file.path("data", "raw",
+      paste0("00_", site_abbrev, "__", focal_ent$entityName))
+
+    # Download it!
+    download.file(url = in_url, destfile =  in_file,
+      method = "curl", extra = paste0(' -A "', getOption("HTTPUserAgent"), '"')) 
   }
-  
-  # Assemble local file name
-  in_file <- file.path("data", "raw",
-    paste0("00_", site_abbrev, "__", focal_ent$entityName))
-
-  # Download it!
-  download.file(url = in_url, destfile =  in_file,
-    method = "curl", extra = paste0(' -A "', getOption("HTTPUserAgent"), '"'))
 }
 
 # End ----
