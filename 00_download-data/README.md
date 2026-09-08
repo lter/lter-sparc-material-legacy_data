@@ -9,7 +9,3 @@ Due to a number of DDoS attacks on EDI in 2026, **you'll need to authenticate be
 Once you have a key, it will be easiest if you make a file that starts with "secret" (e.g., "secret_my-edi-key.md") and copy/paste the key from that file into the "Console" of your IDE when the download code interactively prompts you to do so.
 
 **DO NOT COMMIT THIS FILE!** All files beginning with "secret" have been preemptively added to the `.gitignore` but if you name it something else, you'll be at risk of committing it. 
-
-### Site Abbreviations
-
-Script names end with the three-letter abbreviation of the LTER site to which the data belong. See the LTER's [Site Characteristics table](https://lternet.edu/site-characteristics/) to identify the full name that corresponds with a given abbreviation.
