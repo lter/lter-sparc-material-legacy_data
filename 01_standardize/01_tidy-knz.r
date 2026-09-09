@@ -112,6 +112,6 @@ dplyr::glimpse(knz_v99)
 
 # Export locally
 write.csv(knz_v99, row.names = FALSE, na = '',
-  file = file.path("data", "standard", "01_KNZ.csv"))
+  file = file.path("data", "standard", "01_KNZ_grass.csv"))
 
 # End ----
