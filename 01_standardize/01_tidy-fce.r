@@ -19,7 +19,35 @@ rm(list = ls()); gc()
 # Tidy Litter Data ----
 ## -------------------------------------------- ##
 
-# TBD: Check back later
+# Read in litter data
+fce_lit_v01 <- read.csv(file.path("data", "raw", "00_FCE__LT_PP_Castaneda_001.csv")) %>% 
+  janitor::clean_names()
+
+# Check structure
+dplyr::glimpse(fce_lit_v01)
+
+# Do needed filtering and preparatory wrangling
+fce_lit_v02 <- fce_lit_v01 %>% 
+  dplyr::filter((date > as.Date("2017-09-17") & date < as.Date("2019-03-01")))
+
+# Check structure
+dplyr::glimpse(fce_lit_v02)
+
+# Summarize to deal with nested experimental design
+fce_lit_v03 <- fce_lit_v02 %>% 
+  dplyr::group_by(sitename, plot_id, basket_id) %>% 
+  dplyr::summarize(total_weight = sum(total_weight, na.rm = TRUE),
+    .groups = "drop") %>% 
+  dplyr::group_by(sitename, plot_id) %>% 
+    dplyr::summarize(litter.mean = mean(total_weight, na.rm = TRUE),
+  litter.sd = sd(total_weight, na.rm = TRUE),
+  litter.n = dplyr::n(),
+  litter.se = (litter.sd / sqrt(litter.n)),
+    .groups = "drop") %>% 
+  dplyr::select(-litter.sd, -litter.n)
+
+# Check structure
+dplyr::glimpse(fce_lit_v03)
 
 ## -------------------------------------------- ##
 # Tidy Root Data ----
@@ -59,18 +87,25 @@ dplyr::glimpse(fce_root_v03)
 ## -------------------------------------------- ##
 
 # Join the two data types
-fce_v01 <- fce_root_v03 # %>% 
-  # dplyr::left_join(x = ., y = fce_lit_v03, by = c("sitename", "plot_id"))
+fce_v01 <- fce_root_v03 %>% 
+  dplyr::left_join(x = ., y = fce_lit_v03, by = c("sitename", "plot_id"))
 
 # Check structure
 dplyr::glimpse(fce_v01)
+
+# Ditch any sites without both litter and root info
+fce_v02 <- fce_v01 %>% 
+  dplyr::filter(!is.na(root.prod.mean) & !is.na(litter.mean))
+
+# Check structure
+dplyr::glimpse(fce_v02)
 
 ## -------------------------------------------- ##
 # Export ----
 ## -------------------------------------------- ##
 
 # Make a final version of the data
-fce_v99 <- fce_v01
+fce_v99 <- fce_v02
 
 # One last structure check
 dplyr::glimpse(fce_v99)
