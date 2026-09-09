@@ -16,6 +16,31 @@ source(file.path("-setup.r"))
 rm(list = ls()); gc()
 
 ## -------------------------------------------- ##
+# Tidy Burn Data ----
+## -------------------------------------------- ##
+
+# Identify set of all remotely plausible years
+knz_years_all <- seq(from = 1950, to = 2050)
+
+# Check structure
+dplyr::glimpse(knz_years_all)
+
+# Read in burn year data
+knz_years_burn <- read.csv(file.path("data", "raw", "00_KNZ__KFH011.csv")) %>% 
+  janitor::clean_names() %>%  
+  dplyr::filter(watershed == "2D") %>% 
+  dplyr::pull(year)
+
+# Check structure
+dplyr::glimpse(knz_years_burn)
+
+# Identify unburned years
+knz_years_unburn <- setdiff(x = knz_years_all, y = knz_years_burn)
+
+# Check structure
+dplyr::glimpse(knz_years_unburn)
+
+## -------------------------------------------- ##
 # Tidy Biomass Data ----
 ## -------------------------------------------- ##
 
@@ -36,34 +61,6 @@ knz_2y <- read.csv(file.path("data", "raw", "00_KNZ__PAB041.csv")) %>%
 dplyr::glimpse(knz_2y)
 
 ## -------------------------------------------- ##
-# Tidy Burn Data ----
-## -------------------------------------------- ##
-
-# Read in burn year data
-knz_years_burn <- read.csv(file.path("data", "raw", "00_KNZ__KFH011.csv")) %>% 
-  janitor::clean_names() %>%  
-  dplyr::filter(watershed == "2D")
-
-# Check structure
-dplyr::glimpse(knz_years_burn)
-
-# Generate table of all years & identify burn vs. no burn
-knz_years_all <- data.frame("year" = seq(from = 1978, 
-    to = max(c(knz_1y$recyear, knz_2y$recyear), na.rm = TRUE))) %>% 
-  dplyr::mutate(burn_year = ifelse(year %in% knz_years_burn$year,
-    yes = "yes", no = "no"))
-
-# Check structure
-dplyr::glimpse(knz_years_all)
-
-# Identify unburned years
-knz_years_unburn <- knz_years_all %>% 
-  dplyr::filter(burn_year == "no")
-
-# Check structure
-dplyr::glimpse(knz_years_unburn)
-
-## -------------------------------------------- ##
 # Streamline Biomass Data ---
 ## -------------------------------------------- ##
 
@@ -75,7 +72,7 @@ knz_v01 <- dplyr::bind_rows(knz_1y, knz_2y) %>%
     # Keep only one watershed for 2 year data but only in unburned years
     (source == "2 year" & watershed == "002d")) %>% 
   dplyr::filter(soiltype == "fl") %>% 
-  dplyr::filter(year %in% knz_years_unburn$year)
+  dplyr::filter(year %in% knz_years_unburn)
 
 # Check structure
 dplyr::glimpse(knz_v01)
@@ -89,10 +86,12 @@ knz_v02 <- knz_v01 %>%
 # Check structure
 dplyr::glimpse(knz_v02)
 
-# Identify burn status
+# Identify burn status & do final tidying
 knz_v03 <- knz_v02 %>% 
   dplyr::mutate(burn_cat = ifelse(source == "1 year", 
-    yes = "burned", no = "unburned"))
+      yes = "burned", no = "unburned"),
+    .before = lvgrass.mean) %>% 
+  dplyr::select(-soiltype)
 
 # Check structure
 dplyr::glimpse(knz_v03)
