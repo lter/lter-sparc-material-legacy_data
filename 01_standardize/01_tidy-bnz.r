@@ -30,20 +30,12 @@ dplyr::glimpse(bnz_v01)
 
 names(bnz_v01)
 
-# Pare down the dataset to only columns that are needed
+# Pare down the dataset to only rows/columns that are needed
 bnz_v02 <- bnz_v01 %>% 
-  dplyr::rename(moisture = moist.2008,
-    elevation = elev,
-    Can.cons.percent = X.Can.cons,
-    Standing.percent = X.Standing_Num,
-    BS.density = BS.dens
-  ) %>% 
-  dplyr::select(burn, site, type, moisture, elevation, tree.sev.rank, 
-    Can.cons.percent, Standing.percent, CBI.Over, 
-    BS.density, BS.ba, BS.ntree, BS.nstand)
-  
-# What columns are lost/gained
-supportR::diff_check(old = names(bnz_v01), new = names(bnz_v02))
+  dplyr::filter(type != "ext") %>% 
+  dplyr::select(burn, site, type, BS.ba
+    # , BS.stg.ba, total.m2 <absent from data; calculated by user?>
+    )
 
 # Check structure
 dplyr::glimpse(bnz_v02)
