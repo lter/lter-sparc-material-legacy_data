@@ -39,7 +39,7 @@ options(HTTPUserAgent = "EDI_CodeGen")
 ## -------------------------------------------- ##
 
 # Iterate across package IDs
-for(pkg_id in c("knb-lter-gce.590.37", "knb-lter-gce.629.19")){
+for(pkg_id in c("knb-lter-gce.590.37")){
   # pkg_id <- "knb-lter-gce.590.37"
 
   # Check out data
