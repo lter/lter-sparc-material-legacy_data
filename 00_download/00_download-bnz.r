@@ -39,8 +39,8 @@ options(HTTPUserAgent = "EDI_CodeGen")
 ## -------------------------------------------- ##
 
 # Iterate across package IDs
-for(pkg_id in c("knb-lter-bnz.390.18")){
-  # pkg_id <- "knb-lter-bnz.390.18"
+for(pkg_id in c("knb-lter-bnz.342.21")){
+  # pkg_id <- "knb-lter-bnz.342.21"
 
   # Check out data
   (ents <- EDIutils::read_data_entity_names(packageId = pkg_id))
