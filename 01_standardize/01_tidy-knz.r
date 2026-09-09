@@ -7,7 +7,7 @@
 
 # Load libraries
 # install.packages("librarian")
-librarian::shelf(tidyverse, janitor, supportR)
+librarian::shelf(tidyverse, janitor)
 
 # Get set up
 source(file.path("-setup.r"))
