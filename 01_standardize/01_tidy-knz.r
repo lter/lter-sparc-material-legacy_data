@@ -81,7 +81,11 @@ dplyr::glimpse(knz_v01)
 knz_v02 <- knz_v01 %>% 
   dplyr::group_by(source, year, soiltype, transect) %>% 
   dplyr::summarize(lvgrass.mean = mean(lvgrass, na.rm = TRUE),
-    .groups = "drop")
+    lvgrass.sd = sd(lvgrass, na.rm = TRUE),
+    lvgrass.n = dplyr::n(),
+    lvgrass.se = (lvgrass.sd / sqrt(lvgrass.n)),
+      .groups = "drop") %>% 
+  dplyr::select(-lvgrass.sd, -lvgrass.n)
 
 # Check structure
 dplyr::glimpse(knz_v02)
