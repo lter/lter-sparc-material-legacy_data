@@ -42,39 +42,45 @@ dplyr::glimpse(vcr_v02)
 # Filter & Reshape Oyster Data ----
 ## -------------------------------------------- ##
 
-# Filter to only needed rows/columns and make columns needed for later stuff
+# Filter to only needed rows
 vcr_v03 <- vcr_v02 %>% 
   dplyr::filter(species %in% c("Box Adult Oyster", "Spat Oyster", "Adult Oyster")) %>% 
   dplyr::filter(restoration == "Reference") %>% 
-  dplyr::mutate(
-    year = paste0("20", substr(x = date, start = nchar(date) - 1, stop = nchar(date))),
-    species = dplyr::case_when(
-      species == "Spat Oyster" ~ "juvenile",
-      species == "Adult Oyster" ~ "adult",
-      TRUE ~ "dead"),
-    obs_id = paste(year, site, date, sample, sep = "_") ) %>% 
-  dplyr::select(obs_id, site, year, date, species, species_count) %>% 
   dplyr::mutate(species_count = as.numeric(species_count)) %>% 
-  dplyr::filter(!is.na(species_count))
+  dplyr::filter(!is.na(species_count)) %>% 
+  dplyr::select(site, date, species, species_count)
 
 # Check structure
 dplyr::glimpse(vcr_v03)
 
-# Reshape data to wide format
+# Streamline or create some columns
 vcr_v04 <- vcr_v03 %>% 
+  dplyr::mutate(
+    date = as.Date(date),
+    year = as.numeric(lubridate::year(date)),
+    species = dplyr::case_when(
+      species == "Spat Oyster" ~ "juvenile",
+      species == "Adult Oyster" ~ "adult",
+      TRUE ~ "dead"))
+
+# Check structure
+dplyr::glimpse(vcr_v04)
+
+# Reshape data to wide format
+vcr_v05 <- vcr_v04 %>% 
   tidyr::pivot_wider(names_from = "species", 
      values_from = "species_count", 
      values_fn = sum)
 
 # Check structure
-dplyr::glimpse(vcr_v04)
+dplyr::glimpse(vcr_v05)
 
 ## -------------------------------------------- ##
 # Summarize Oyster Data ----
 ## -------------------------------------------- ##
 
 # Calculate means across quadrats for site and year
-vcr_v05 <- vcr_v04 %>% 
+vcr_v06 <- vcr_v05 %>% 
   dplyr::group_by(year, site) %>% 
   dplyr::summarize(dead.mean = mean(dead, na.rm = TRUE),
     adult.mean = mean(adult, na.rm = TRUE),
@@ -82,14 +88,14 @@ vcr_v05 <- vcr_v04 %>%
     .groups = "drop")
 
 # Check structure
-dplyr::glimpse(vcr_v05)
+dplyr::glimpse(vcr_v06)
 
 ## -------------------------------------------- ##
 # Export ----
 ## -------------------------------------------- ##
 
 # Make a final version of the data
-vcr_v99 <- vcr_v05
+vcr_v99 <- vcr_v06
 
 # One last structure check
 dplyr::glimpse(vcr_v99)
