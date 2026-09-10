@@ -40,7 +40,7 @@ vcr_v02 <- vcr_v01 %>%
 dplyr::glimpse(vcr_v02)
 
 ## -------------------------------------------- ##
-# Filter & Reshape Oyster Data ----
+# Filter & Prepare Oyster Data ----
 ## -------------------------------------------- ##
 
 # Filter to only needed rows
@@ -67,26 +67,36 @@ vcr_v04 <- vcr_v03 %>%
 # Check structure
 dplyr::glimpse(vcr_v04)
 
-# Reshape data to wide format
-vcr_v05 <- vcr_v04 %>% 
-  tidyr::pivot_wider(names_from = "species", 
-     values_from = "species_count", 
-     values_fn = sum)
-
-# Check structure
-dplyr::glimpse(vcr_v05)
-
 ## -------------------------------------------- ##
 # Summarize Oyster Data ----
 ## -------------------------------------------- ##
 
-# Calculate means across quadrats for site and year
+# Summarize within groups across dates
+vcr_v05 <- vcr_v04 %>% 
+  dplyr::group_by(year, site, species) %>% 
+  dplyr::summarize(sp.mean = mean(species_count, na.rm = TRUE),
+    sp.sd = sd(species_count, na.rm = TRUE),
+    sp.n = dplyr::n(),
+    sp.se = (sp.sd / sqrt(sp.n)),
+    .groups = "drop") %>% 
+    dplyr::select(-sp.sd, -sp.n)
+
+# Check structure
+dplyr::glimpse(vcr_v05)
+
+# Reshape data to wide format
 vcr_v06 <- vcr_v05 %>% 
-  dplyr::group_by(year, site) %>% 
-  dplyr::summarize(dead.mean = mean(dead, na.rm = TRUE),
-    adult.mean = mean(adult, na.rm = TRUE),
-    juvenile.mean = mean(juvenile, na.rm = TRUE),
-    .groups = "drop")
+  tidyr::pivot_wider(names_from = "species", 
+     values_from = c(sp.mean, sp.se)) %>% 
+  dplyr::rename_with(.fn = ~ gsub(pattern = "sp\\.", replacement = "", x = .)) %>% 
+  dplyr::rename(adult_mean = mean_adult,
+    dead_mean = mean_dead,
+    juvenile_mean = mean_juvenile,
+    adult_se = se_adult,
+    dead_se = se_dead,
+    juvenile_se = se_juvenile) %>% 
+  dplyr::relocate(dplyr::starts_with(c("adult", "juvenile", "dead")),
+    .after = site)
 
 # Check structure
 dplyr::glimpse(vcr_v06)
