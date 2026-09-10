@@ -6,7 +6,7 @@
 
 # Load libraries
 # install.packages("librarian")
-librarian::shelf(tidyverse, supportR)
+librarian::shelf(tidyverse)
 
 # Get set up
 source(file.path("-setup.r"))
@@ -52,7 +52,8 @@ dplyr::glimpse(bnz_v03)
 ## -------------------------------------------- ##
 
 # Make a final version of the data
-bnz_v99 <- bnz_v03
+bnz_v99 <- bnz_v03 %>% 
+  dplyr::rename_with(.fn = ~ tolower(gsub(pattern = "_", replacement = ".", x = .)))
 
 # One last structure check
 dplyr::glimpse(bnz_v99)
@@ -60,6 +61,5 @@ dplyr::glimpse(bnz_v99)
 # Export locally
 write.csv(bnz_v99, row.names = FALSE, na = '',
   file = file.path("data", "standard", "01_BNZ_forest-fire.csv"))
-
 
 # End ----

@@ -7,7 +7,7 @@
 
 # Load libraries
 # install.packages("librarian")
-librarian::shelf(tidyverse, supportR)
+librarian::shelf(tidyverse, janitor)
 
 # Get set up
 source(file.path("-setup.r"))
@@ -71,7 +71,7 @@ dplyr::glimpse(luq_v03)
 # Summarize
 luq_v04 <- luq_v03 %>% 
   dplyr::group_by(treatment, year, block, plot) %>% 
-  summarize(seedling.count = sum(lessthan10cm, na.rm = TRUE),
+  dplyr::summarize(seedling.count = sum(lessthan10cm, na.rm = TRUE),
     .groups = "drop")
 
 # Check structure
@@ -82,7 +82,8 @@ dplyr::glimpse(luq_v04)
 ## -------------------------------------------- ##
 
 # Make a final version of the data
-luq_v99 <- luq_v04
+luq_v99 <- luq_v04 %>% 
+  dplyr::rename_with(.fn = ~ tolower(gsub(pattern = "_", replacement = ".", x = .)))
 
 # One last structure check
 dplyr::glimpse(luq_v99)

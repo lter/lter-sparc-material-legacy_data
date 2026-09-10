@@ -96,7 +96,8 @@ dplyr::glimpse(vcr_v06)
 ## -------------------------------------------- ##
 
 # Make a final version of the data
-vcr_v99 <- vcr_v06
+vcr_v99 <- vcr_v06 %>% 
+  dplyr::rename_with(.fn = ~ tolower(gsub(pattern = "_", replacement = ".", x = .)))
 
 # One last structure check
 dplyr::glimpse(vcr_v99)

@@ -10,7 +10,7 @@
 
 # Load libraries
 # install.packages("librarian")
-librarian::shelf(tidyverse, janitor)
+librarian::shelf(tidyverse)
 
 # Get set up
 source(file.path("-setup.r"))
@@ -76,7 +76,8 @@ dplyr::glimpse(hfr_v05)
 ## -------------------------------------------- ##
 
 # Make a final version of the data
-hfr_v99 <- hfr_v05
+hfr_v99 <- hfr_v05 %>% 
+  dplyr::rename_with(.fn = ~ tolower(gsub(pattern = "_", replacement = ".", x = .)))
 
 # One last structure check
 dplyr::glimpse(hfr_v99)

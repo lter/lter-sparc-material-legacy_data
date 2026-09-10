@@ -101,7 +101,8 @@ dplyr::glimpse(mcr_v07)
 ## -------------------------------------------- ##
 
 # Make a final version of the data
-mcr_v99 <- mcr_v07
+mcr_v99 <- mcr_v07 %>% 
+  dplyr::rename_with(.fn = ~ tolower(gsub(pattern = "_", replacement = ".", x = .)))
 
 # One last structure check
 dplyr::glimpse(mcr_v99)

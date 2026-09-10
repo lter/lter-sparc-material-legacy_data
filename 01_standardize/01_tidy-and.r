@@ -10,7 +10,7 @@
 
 # Load libraries
 # install.packages("librarian")
-librarian::shelf(tidyverse, supportR)
+librarian::shelf(tidyverse, janitor, supportR)
 
 # Get set up
 source(file.path("-setup.r"))
@@ -73,7 +73,8 @@ dplyr::glimpse(and_v03)
 ## -------------------------------------------- ##
 
 # Make a final version of the data
-and_v99 <- and_v03
+and_v99 <- and_v03 %>% 
+  dplyr::rename_with(.fn = ~ tolower(gsub(pattern = "_", replacement = ".", x = .)))
 
 # One last structure check
 dplyr::glimpse(and_v99)
