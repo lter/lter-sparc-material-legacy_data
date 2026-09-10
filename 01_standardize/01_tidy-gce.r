@@ -1,5 +1,5 @@
 ## -------------------------------------------- ##
-# Download Data - Georgia Coastal Ecosystems (GCE)
+# Standardize Data - Georgia Coastal Ecosystems (GCE)
 ## -------------------------------------------- ##
 # Purpose
 ## Get these data into a standard format with that of other sites

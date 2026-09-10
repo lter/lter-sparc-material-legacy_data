@@ -5,9 +5,7 @@
 ## Get these data into a standard format with that of other sites
 
 ## !!! DATA SOURCE NOTE !!!
-
 # Data taken from Google Drive (_not_ EDI)
-
 ## !!! SEE ABOVE !!!
 
 # Load libraries

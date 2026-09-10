@@ -1,5 +1,5 @@
 ## -------------------------------------------- ##
-# Download Data - Florida Coastal Everglades (FCE)
+# Standardize Data - Florida Coastal Everglades (FCE)
 ## -------------------------------------------- ##
 # Purpose
 ## Get these data into a standard format with that of other sites
