@@ -3,6 +3,7 @@
 ## -------------------------------------------- ##
 # Purpose
 ## Get these data into a standard format with that of other sites
+## Data downloaded from EDI by `00_download-luq.r`
 
 # Load libraries
 # install.packages("librarian")
