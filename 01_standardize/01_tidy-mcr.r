@@ -1,8 +1,14 @@
 ## -------------------------------------------- ##
-# Download Data - Moorea Coral Reef (MCR)
+# Standardize Data - Moorea Coral Reef (MCR)
 ## -------------------------------------------- ##
 # Purpose
 ## Get these data into a standard format with that of other sites
+
+## !!! DATA SOURCE NOTE !!!
+
+# Data taken from Google Drive (_not_ EDI)
+
+## !!! SEE ABOVE !!!
 
 # Load libraries
 # install.packages("librarian")
@@ -14,8 +20,7 @@ source(file.path("-setup.r"))
 # Clear environment/collect garbage
 rm(list = ls()); gc()
 
-# Define 3-letter site abbreviation
-site_abbrev <- "MCR"
+
 
 
 # End ----
