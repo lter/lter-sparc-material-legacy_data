@@ -20,78 +20,90 @@ rm(list = ls()); gc()
 
 # Read in the relevant file
 bnz_seed_v01 <- read.csv(file = file.path("data", "raw", 
-  "00_BNZ__391_JFSP_seedrain_viab.txt"), sep = "\t")
+  "00_BNZ__390_JFSP_seedrain_counts.txt"), sep = "\t")
 
 # Check structure
 dplyr::glimpse(bnz_seed_v01)
 
 # Check for non-numbers in ostensibly numeric column(s)
-supportR::num_check(data = bnz_seed_v01, col = "Viability")
+supportR::num_check(data = bnz_seed_v01, col = "Seeds")
 
-# Repair non-numbers and filter out unwanted dates
+# Fix existing columns, generate new ones
 bnz_seed_v02 <- bnz_seed_v01 %>% 
-  dplyr::mutate(Viability = as.numeric(ifelse(Viability == "n/a", yes = NA, no = Viability))) %>% 
-  dplyr::filter(Date %in% c("05-Aug", 
-# "06-May", "06-Aug", 
-"07-Jun"))
-
-# "05-Aug" "06-May" "06-Aug" "07-Jun"
+  dplyr::mutate(
+    Seeds = as.numeric(ifelse(Seeds == "n/a", yes = NA, no = Seeds)),
+    per_trap_area_m2 =  (52 / 100) * (22.5 / 100), # Traps were 52cm x 22.5cm (from EDI docs)
+    trap_area_m2 = X.Traps * per_trap_area_m2) 
 
 # Check structure
 dplyr::glimpse(bnz_seed_v02)
-
-# Repair non-numbers and summarize these data across dates
+    
+# Filter out unwanted rows
 bnz_seed_v03 <- bnz_seed_v02 %>% 
-  dplyr::group_by(Site) %>% 
-  dplyr::summarize(
-    seed.viab.mean = mean(Viability, na.rm = TRUE),
-    seed.viab.se = (sd(Viability, na.rm = TRUE) / sqrt(dplyr::n())),
-    total.seed.mean = mean(Seeds, na.rm = TRUE),
-    total.seed.se = (sd(Seeds, na.rm = TRUE) / sqrt(dplyr::n())),
-    total.germ.mean = mean(Germ, na.rm = TRUE),
-    .groups = "drop")
-
-    # average total number of spruce seeds/m2 for Aug05 and Jun07 collection periods.
+  dplyr::filter(Date %in% c("25-Aug-05", "09-Jun-07"))
 
 # Check structure
 dplyr::glimpse(bnz_seed_v03)
 
+# Summarize these data across samples within date, then across dates
+bnz_seed_v04 <- bnz_seed_v03 %>% 
+  dplyr::group_by(Site, Date) %>% 
+  dplyr::summarize(seeds = sum(Seeds, na.rm = TRUE),
+    traps_area = sum(trap_area_m2, na.rm = TRUE),
+    .groups = "drop") %>% 
+  dplyr::mutate(seed.total.m2 = seeds / traps_area) %>% 
+  dplyr::group_by(Site) %>% 
+  dplyr::summarize(seed.total.m2.mean = mean(seed.total.m2, na.rm = TRUE),
+    seed.total.m2.se = (sd(seed.total.m2, na.rm = TRUE) / sqrt(dplyr::n())),
+    .groups = "drop")
+
+# Check structure
+dplyr::glimpse(bnz_seed_v04)
+
 ## -------------------------------------------- ##
-# Tidy Forest Fire Data ----
+# Tidy Tree Data ----
 ## -------------------------------------------- ##
 
 # Load in the data file
-bnz_v01 <- read.csv(file = file.path("data", "raw", "00_BNZ__342_JFSP_sitedata_2011.txt"),
-    sep = "\t")
+bnz_tree_v01 <- read.csv(file = file.path("data", "raw", 
+  "00_BNZ__342_JFSP_sitedata_2011.txt"), sep = "\t")
+
+# Check structure
+dplyr::glimpse(bnz_tree_v01)
+
+# Rename and calculate necessary columns
+bnz_tree_v02 <- bnz_tree_v01 %>% 
+  dplyr::mutate(black.spruce.standing.basal.area = BS.ba * X.Standing_Num) %>% 
+  dplyr::rename(black.spruce.basal.area = BS.ba) # cm2 stem / ha
+
+# Check structure
+dplyr::glimpse(bnz_tree_v02)
+
+# Pare down to only rows / columns that are needed
+bnz_tree_v03 <- bnz_tree_v02 %>% 
+  dplyr::filter(type != "ext") %>% 
+  dplyr::select(burn, site, dplyr::starts_with("black.spruce"))
+
+# Check structure
+dplyr::glimpse(bnz_tree_v03)
+
+## -------------------------------------------- ##
+# Combine Seed & Tree Data ----
+## -------------------------------------------- ##
+
+# Join the data
+bnz_v01 <- dplyr::full_join(x = bnz_tree_v03, y = bnz_seed_v04,
+  by = c("site" = "Site"))
 
 # Check structure
 dplyr::glimpse(bnz_v01)
-
-# Rename and calculate necessary columns
-bnz_v02 <- bnz_v01 %>% 
-  dplyr::mutate(
-    type = ifelse(type == "int", yes = "intensive", no = type),
-    black.spruce.standing.basal.area = BS.ba * X.Standing_Num) %>% 
-  dplyr::rename(black.spruce.basal.area = BS.ba) # cm2 stem / ha
-
-
-# Check structure
-dplyr::glimpse(bnz_v02)
-
-# Pare down to only rows / columns that are needed
-bnz_v03 <- bnz_v02 %>% 
-  dplyr::filter(type != "ext") %>% 
-  dplyr::select(burn, site, type, dplyr::starts_with("black.spruce"))
-
-# Check structure
-dplyr::glimpse(bnz_v03)
 
 ## -------------------------------------------- ##
 # Export ----
 ## -------------------------------------------- ##
 
 # Make a final version of the data
-bnz_v99 <- bnz_v03 %>% 
+bnz_v99 <- bnz_v01 %>% 
   dplyr::rename_with(.fn = ~ tolower(gsub(pattern = "_", replacement = ".", x = .)))
 
 # One last structure check
