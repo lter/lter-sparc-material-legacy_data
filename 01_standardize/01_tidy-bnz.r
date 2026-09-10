@@ -14,9 +14,6 @@ source(file.path("-setup.r"))
 # Clear environment/collect garbage
 rm(list = ls()); gc()
 
-# Define 3-letter site abbreviation
-site_abbrev <- "BNZ"
-
 ## -------------------------------------------- ##
 # Tidy Forest Fire Data ----
 ## -------------------------------------------- ##
@@ -28,21 +25,22 @@ bnz_v01 <- read.csv(file = file.path("data", "raw", "00_BNZ__342_JFSP_sitedata_2
 # Check structure
 dplyr::glimpse(bnz_v01)
 
-names(bnz_v01)
-
-# Pare down the dataset to only rows/columns that are needed
+# Rename and calculate necessary columns
 bnz_v02 <- bnz_v01 %>% 
-  dplyr::filter(type != "ext") %>% 
-  dplyr::select(burn, site, type, BS.ba
-    # , BS.stg.ba, total.m2 <absent from data; calculated by user?>
-    )
+  dplyr::mutate(
+    type = ifelse(type == "int", yes = "intensive", no = type),
+    black.spruce.standing.basal.area = BS.ba * X.Standing_Num) %>% 
+  dplyr::rename(black.spruce.basal.area = BS.ba) # cm2 stem / ha
+
+# average total number of spruce seeds/m2 for Aug05 and Jun07 collection periods.
 
 # Check structure
 dplyr::glimpse(bnz_v02)
 
-# Filter as needed
+# Pare down to only rows / columns that are needed
 bnz_v03 <- bnz_v02 %>% 
-  dplyr::filter(type != "ext")
+  dplyr::filter(type != "ext") %>% 
+  dplyr::select(burn, site, type, dplyr::starts_with("black.spruce"))
 
 # Check structure
 dplyr::glimpse(bnz_v03)
