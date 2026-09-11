@@ -1,8 +1,8 @@
 ## -------------------------------------------- ##
-# Fit GLMMs to Data
+# Create Data Paper Table
 ## -------------------------------------------- ##
 # Purpose
-## Analyze data and extract Z scores/other model metrics
+## Calculate Z scores and make a cross-site table
 ## Works for all sites (but depends on outputs of respective `01` scripts)
 
 # Need to quickly re-generate all standardized data files?
@@ -13,7 +13,7 @@
 
 # Load libraries
 # install.packages("librarian")
-librarian::shelf(tidyverse, glmmTMB, broom.mixed, ggeffects)
+librarian::shelf(tidyverse)
 
 # Get set up
 source(file.path("-setup.r"))
@@ -21,8 +21,8 @@ source(file.path("-setup.r"))
 # Clear environment/collect garbage
 rm(list = ls()); gc()
 
-# Make a list for storing outputs
-glm_list <- list()
+# Make a list for outputs
+z_list <- list()
 
 ## -------------------------------------------- ##
 # Analyze Andrews Forest (AND) ----
@@ -38,15 +38,20 @@ dplyr::glimpse(and_df)
 and_z <- and_df %>% 
   dplyr::mutate(
     tree.growth.m2.indiv.yr_z = scale(and_df$tree.growth.m2.indiv.yr)[, 1],
-    dead.wood.mass.kg.ha_z = scale(and_df$dead.wood.mass.kg.ha)[, 1] )
+    dead.wood.mass.kg.ha_z = scale(and_df$dead.wood.mass.kg.ha)[, 1] ) %>% 
+  dplyr::select(site = stand, dplyr::ends_with("_z")) %>% 
+  dplyr::group_by(site) %>% 
+  dplyr::summarize(
+    material.legacy.predictor = mean(dead.wood.mass.kg.ha_z, na.rm = TRUE),
+    foundation.sp.response = mean(tree.growth.m2.indiv.yr_z, na.rm = TRUE),
+    .groups = "drop") %>% 
+  dplyr::rename(plot = site)
 
 # Check structure
 dplyr::glimpse(and_z)
-      
-# Fit GLMM and add to list
-glm_list[["AND"]] <- glmmTMB::glmmTMB(
-  tree.growth.m2.indiv.yr_z ~ dead.wood.mass.kg.ha_z + (1 | stand),
-  data = and_z, family = stats::gaussian())
+
+# Add to list
+z_list[["AND"]] <- and_z
 
 ## -------------------------------------------- ##
 # Analyze Bonanza Creek (BNZ) ----
@@ -62,17 +67,20 @@ dplyr::glimpse(bnz_df)
 bnz_z <- bnz_df %>% 
   dplyr::mutate(
     mean.seeds.m2_z = scale(bnz_df$mean.seeds.m2)[, 1],
-    black.spruce.basal.area.cm2.m2_z = scale(bnz_df$black.spruce.basal.area.cm2.m2)[, 1] )
+    black.spruce.basal.area.cm2.m2_z = scale(bnz_df$black.spruce.basal.area.cm2.m2)[, 1] ) %>% 
+  dplyr::group_by(burn, site) %>% 
+  dplyr::summarize(
+    material.legacy.predictor = mean(black.spruce.basal.area.cm2.m2_z, na.rm = TRUE),
+    foundation.sp.response = mean(mean.seeds.m2_z, na.rm = TRUE),
+    .groups = "drop") %>% 
+  dplyr::mutate(plot = paste0(burn, "-", site)) %>% 
+  dplyr::select(-burn, -site)
 
 # Check structure
 dplyr::glimpse(bnz_z)
     
 # Fit GLMM and add to list
-glm_list[["BNZ"]] <- glmmTMB::glmmTMB(
-  mean.seeds.m2_z ~ black.spruce.basal.area.cm2.m2_z + (1 | burn/site),
-  data = bnz_z, family = stats::gaussian())
-## [KK]: False convergence warning; tried many alternative options, none of which resolved this.
-## Proceeding anyway, but with caution; diagnostics dests won't run due to non-convergence
+z_list[["BNZ"]] <- bnz_z
 
 ## -------------------------------------------- ##
 # Analyze Florida Coastal Everglades (FCE) ----
@@ -88,117 +96,134 @@ dplyr::glimpse(fce_df)
 fce_z <- fce_df %>% 
   dplyr::mutate(
     mean.root.production.g.m2.yr_z = scale(fce_df$mean.root.production.g.m2.yr)[, 1],
-    mean.litter.g_z = scale(fce_df$mean.litter.g)[, 1] )
+    mean.litter.g_z = scale(fce_df$mean.litter.g)[, 1] ) %>% 
+    dplyr::group_by(site) %>% 
+    dplyr::summarize(
+      material.legacy.predictor = mean(mean.litter.g_z, na.rm = TRUE),
+      foundation.sp.response = mean(mean.root.production.g.m2.yr_z, na.rm = TRUE),
+      .groups = "drop") %>% 
+  dplyr::rename(plot = site)
 
 # Check structure
 dplyr::glimpse(fce_z)
 
-# Fit GLMM and add to list
-glm_list[["FCE"]] <- glmmTMB::glmmTMB(
-  mean.root.production.g.m2.yr_z ~ mean.litter.g_z + (1 | site),
-  data = fce_z, family = stats::gaussian())
+# Add to list
+z_list[["FCE"]] <- fce_z
 
 ## -------------------------------------------- ##
 # Analyze Georgia Coastal Ecosystems (GCE) ----
 ## -------------------------------------------- ##
 
 # Load data
-gce_df <- read.csv(file.path("data", "standard", "01_GCE_marsh-biomass.csv")) %>% 
-  dplyr::mutate(disturbance = ordered(disturbance, levels = c("absent", "present")))
+gce_df <- read.csv(file.path("data", "standard", "01_GCE_marsh-biomass.csv"))
 
 # Check structure
 dplyr::glimpse(gce_df)
 
 # Scale response/explanatory to Z scores
 gce_z <- gce_df %>% 
-  dplyr::mutate(mean.plant.biomass.g.m2_z = scale(gce_df$mean.plant.biomass.g.m2)[, 1] )
+  dplyr::mutate(mean.plant.biomass.g.m2_z = scale(gce_df$mean.plant.biomass.g.m2)[, 1] ) %>% 
+  dplyr::group_by(disturbance, site, year) %>% 
+  dplyr::summarize(
+    foundation.sp.response = mean(mean.plant.biomass.g.m2_z, na.rm = TRUE),
+    .groups = "drop") %>% 
+  dplyr::rename(material.legacy.predictor = disturbance,
+    plot = site)
 
 # Check structure
 dplyr::glimpse(gce_z)
 
-# Fit GLMM and add to list
-glm_list[["GCE"]] <- glmmTMB::glmmTMB(
-  mean.plant.biomass.g.m2_z ~ disturbance + (1 | site) + (1 | year),
-  data = gce_z, family = stats::gaussian())
+# Add to list
+z_list[["GCE"]] <- gce_z
 
 ## -------------------------------------------- ##
 # Analyze Harvard Forest (HFR) ----
 ## -------------------------------------------- ##
 
 # Load data
-hfr_df <- read.csv(file.path("data", "standard", "01_HFR_hemlock-removal.csv")) %>% 
-  dplyr::mutate(treatment = factor(treatment, levels = c("logged", "girdled")))
+hfr_df <- read.csv(file.path("data", "standard", "01_HFR_hemlock-removal.csv"))
 
 # Check structure
 dplyr::glimpse(hfr_df)
 
 # Scale response/explanatory to Z scores
 hfr_z <- hfr_df %>% 
-  dplyr::mutate(hemlock.density.ha_z = scale(hfr_df$hemlock.density.ha)[, 1] )
+  dplyr::mutate(hemlock.density.ha_z = scale(hfr_df$hemlock.density.ha)[, 1] ) %>% 
+  dplyr::group_by(block, plot, treatment, year) %>% 
+  dplyr::summarize(
+    foundation.sp.response = mean(hemlock.density.ha_z, na.rm = TRUE),
+    .groups = "drop") %>% 
+  dplyr::rename(material.legacy.predictor = treatment,
+    tmp = plot) %>% 
+  dplyr::mutate(plot = paste0(block, "-", tmp)) %>% 
+  dplyr::select(-block, -tmp)
 
 # Check structure
 dplyr::glimpse(hfr_z)
 
-# Fit GLMM and add to list
-glm_list[["HFR"]] <- glmmTMB::glmmTMB(
-  hemlock.density.ha_z ~ treatment + (1 | block/plot) + (1 | year),
-  dispformula = ~ treatment,
-  # (^^^) Allow residual variance to differ by treatment to account for heteroscedasticity
-  data = hfr_z, family = stats::gaussian())
+# Add to list
+z_list[["HFR"]] <- hfr_z
 
 ## -------------------------------------------- ##
 # Analyze Konza Prairie (KNZ) ----
 ## -------------------------------------------- ##
 
 # Load data
-knz_df <- read.csv(file.path("data", "standard", "01_KNZ_grass.csv")) %>% 
-  dplyr::mutate(burn = as.factor(burn))
+knz_df <- read.csv(file.path("data", "standard", "01_KNZ_grass.csv"))
 
 # Check structure
 dplyr::glimpse(knz_df)
 
 # Scale response/explanatory to Z scores
 knz_z <- knz_df %>% 
-  dplyr::mutate(mean.live.grass.g.dm2_z = scale(knz_df$mean.live.grass.g.dm2)[, 1] )
+  dplyr::mutate(mean.live.grass.g.dm2_z = scale(knz_df$mean.live.grass.g.dm2)[, 1] ) %>% 
+  dplyr::group_by(burn, year, transect) %>% 
+  dplyr::summarize(
+    foundation.sp.response = mean(mean.live.grass.g.dm2_z, na.rm = TRUE),
+    .groups = "drop") %>% 
+  dplyr::rename(material.legacy.predictor = burn,
+    plot = transect)
 
 # Check structure
 dplyr::glimpse(knz_z)
 
-# Fit GLMM and add to list
-glm_list[["KNZ"]] <- glmmTMB::glmmTMB(
-  mean.live.grass.g.dm2_z ~ burn + (1 | year) + (1 | transect),
-  data = knz_z, family = stats::gaussian())
+# Add to list
+z_list[["KNZ"]] <- knz_z
 
 ## -------------------------------------------- ##
 # Analyze Luquillo (LUQ) ----
 ## -------------------------------------------- ##
 
 # Load data
-luq_df <- read.csv(file.path("data", "standard", "01_LUQ_seedlings.csv")) %>% 
-  dplyr::mutate(dplyr::across(.cols = treatment:plot, .fns = as.factor))
+luq_df <- read.csv(file.path("data", "standard", "01_LUQ_seedlings.csv"))
 
 # Check structure
 dplyr::glimpse(luq_df)
 
 # Scale response/explanatory to Z scores
 luq_z <- luq_df %>% 
-  dplyr::mutate(seedling.count_z = scale(luq_df$seedling.count)[, 1] )
+  dplyr::mutate(seedling.count_z = scale(luq_df$seedling.count)[, 1] ) %>% 
+  dplyr::group_by(block, plot, year, treatment) %>% 
+  dplyr::summarize(
+    foundation.sp.response = mean(seedling.count_z, na.rm = TRUE),
+    .groups = "drop") %>% 
+  dplyr::rename(material.legacy.predictor = treatment,
+    tmp = plot) %>% 
+  dplyr::mutate(plot = paste0(block, "-", tmp)) %>% 
+  dplyr::select(-block, -tmp)
 
 # Check structure
 dplyr::glimpse(luq_z)
 
 # Fit GLMM and add to list
-glm_list[["LUQ"]] <- glmmTMB::glmmTMB(
-  seedling.count_z ~ treatment + (1 | block/plot) + (1 | year),
-  data = luq_z, family = stats::gaussian())
+z_list[["LUQ"]] <- luq_z
 
 ## -------------------------------------------- ##
 # Analyze Moorea Coral Reef (MCR) ----
 ## -------------------------------------------- ##
 
 # Load data
-mcr_df <- read.csv(file.path("data", "standard", "01_MCR_corals.csv")) %>% 
-  dplyr::mutate(year = as.factor(year))
+mcr_df <- read.csv(file.path("data", "standard", "01_MCR_corals.csv"))
 
 # Check structure
 dplyr::glimpse(mcr_df)
@@ -207,15 +232,21 @@ dplyr::glimpse(mcr_df)
 mcr_z <- mcr_df %>% 
   dplyr::mutate(
     coral.live.percent.change_z = scale(mcr_df$coral.live.percent.change)[, 1],
-    coral.dead.m2.start_z = scale(mcr_df$coral.dead.m2.start)[, 1] )
+    coral.dead.m2.start_z = scale(mcr_df$coral.dead.m2.start)[, 1] ) %>% 
+  dplyr::group_by(plot, year, treatment) %>% 
+  dplyr::summarize(
+    foundation.sp.response = mean(coral.live.percent.change_z, na.rm = TRUE),
+    material.legacy.predictor = mean(coral.dead.m2.start_z, na.rm = TRUE),
+    .groups = "drop") %>% 
+  dplyr::rename(tmp = plot) %>% 
+  dplyr::mutate(plot = paste0(treatment, "-", tmp)) %>% 
+  dplyr::select(-treatment, -tmp)
 
 # Check structure
 dplyr::glimpse(mcr_z)
 
 # Fit GLMM and add to list
-glm_list[["MCR"]] <- glmmTMB::glmmTMB(
-  coral.live.percent.change_z ~ coral.dead.m2.start_z + (1 | treatment/plot) + (1 | year),
-  data = mcr_z, family = stats::gaussian())
+z_list[["MCR"]] <- mcr_z
 
 ## -------------------------------------------- ##
 # Analyze SONGS ----
@@ -232,16 +263,20 @@ dplyr::glimpse(songs_df)
 songs_z <- songs_df %>% 
   dplyr::mutate(
     kelp.recruit.density.m2_z = scale(songs_df$kelp.recruit.density.m2)[, 1],
-    kelp.holdfast.dead.percent.cover_z = scale(songs_df$kelp.holdfast.dead.percent.cover)[, 1] )
+    kelp.holdfast.dead.percent.cover_z = scale(songs_df$kelp.holdfast.dead.percent.cover)[, 1] ) %>% 
+  dplyr::group_by(reef, transect, year) %>% 
+  dplyr::summarize(
+    foundation.sp.response = mean(kelp.recruit.density.m2_z, na.rm = TRUE),
+    material.legacy.predictor = mean(kelp.holdfast.dead.percent.cover_z, na.rm = TRUE),
+    .groups = "drop") %>% 
+  dplyr::mutate(plot = paste0(reef, "-", transect)) %>% 
+  dplyr::select(-reef, -transect)
 
 # Check structure
 dplyr::glimpse(songs_z)
 
 # Fit GLMM and add to list
-glm_list[["SONGS"]] <- glmmTMB::glmmTMB(
-  kelp.recruit.density.m2 ~ kelp.holdfast.dead.percent.cover_z + (1 | reef/transect) + (1 | year),
-  ## Note (^^^): response is unscaled, _NOT_ the scaled Z score version!
-  data = songs_z, family = glmmTMB::nbinom2(link = "log"))
+z_list[["SONGS"]] <- songs_z
 
 ## -------------------------------------------- ##
 # Analyze Virginia Coastal Reserve (VCR) ----
@@ -257,55 +292,91 @@ dplyr::glimpse(vcr_df)
 vcr_z <- vcr_df %>% 
   dplyr::mutate(
     mean.juvenile.oyster.count.quarter.m2_z = scale(vcr_df$mean.juvenile.oyster.count.quarter.m2)[, 1],
-    mean.dead.oyster.count.quarter.m2_z = scale(vcr_df$mean.dead.oyster.count.quarter.m2)[, 1] )
+    mean.dead.oyster.count.quarter.m2_z = scale(vcr_df$mean.dead.oyster.count.quarter.m2)[, 1] ) %>% 
+  dplyr::group_by(site, year) %>% 
+  dplyr::summarize(
+    foundation.sp.response = mean(mean.juvenile.oyster.count.quarter.m2_z, na.rm = TRUE),
+    material.legacy.predictor = mean(mean.dead.oyster.count.quarter.m2_z, na.rm = TRUE),
+    .groups = "drop") %>% 
+  dplyr::rename(plot = site)
 
 # Check structure
 dplyr::glimpse(vcr_z)
 
 # Fit GLMM and add to list
-glm_list[["VCR"]] <- glmmTMB::glmmTMB(
-  mean.juvenile.oyster.count.quarter.m2_z ~ mean.dead.oyster.count.quarter.m2_z + (1 | site) + (1 | year),
-  data = vcr_z, family = stats::gaussian())
+z_list[["VCR"]] <- vcr_z
 
 ## -------------------------------------------- ##
-# Calculate Effect Sizes ----
+# Process Table ----
 ## -------------------------------------------- ##
 
 # Calculate effect sizes and get a tidy table
-effects_v01 <- glm_list %>% 
-  purrr::map(.f = ~ broom.mixed::tidy(x = .x, effects = "fixed",
-    conf.int = TRUE, conf.level = 0.95)) %>% 
-  purrr::imap(.f = ~ dplyr::mutate(.data = .x, lter = .y,
+tab_v01 <- z_list %>% 
+  purrr::map(.f = ~ dplyr::mutate(.data = .x, 
+    dplyr::across(.cols = dplyr::everything(), .fns = as.character))) %>% 
+  purrr::imap(.f = ~ dplyr::mutate(.data = .x, site = .y,
     .before = dplyr::everything())) %>% 
-  purrr::list_rbind()
+  purrr::list_rbind() %>% 
+  dplyr::relocate(year, .before = plot)
   
 # Check structure
-dplyr::glimpse(effects_v01)
+dplyr::glimpse(tab_v01)
 
-## -------------------------------------------- ##
-# Get Model Predictions ----
-## -------------------------------------------- ##
+# Summarize across years (to make a simpler table in case that's desired)
+mean_z_list <- list()
+for(site in unique(names(z_list))){
+  # site <- "AND"
 
-# Get model predictions
-pred_v01 <- glm_list %>% 
-  purrr::map(.f = ~ ggeffects::ggpredict(model = .x,
-    term = attr(.x$modelInfo$terms$cond$fixed, 
-                "term.labels"))) %>% 
-  purrr::map(.f = as.data.frame) %>% 
-  purrr::imap(.f = ~ dplyr::mutate(.data = .x, lter = .y,
+  # Grab that site
+  focal_df <- z_list[[site]]
+
+  # If material legacy predictor is numeric, average it across years
+  if(all(!is.na(suppressWarnings(as.numeric(focal_df$material.legacy.predictor))))){
+
+    # Summarize!
+    focal_done <- focal_df %>% 
+      dplyr::group_by(dplyr::across(dplyr::all_of(setdiff(x = names(focal_df), 
+        y = c("year", "material.legacy.predictor", "foundation.sp.response"))))) %>% 
+      dplyr::summarize(
+        material.legacy.predictor = mean(material.legacy.predictor, na.rm = TRUE),
+        foundation.sp.response = mean(foundation.sp.response, na.rm = TRUE),
+        .groups = "drop")
+
+  # If material legacy _is not_ numeric, grab a unique value across years
+  } else {
+    focal_done <- focal_df %>% 
+      dplyr::group_by(dplyr::across(dplyr::all_of(setdiff(x = names(focal_df), 
+        y = c("year", "foundation.sp.response"))))) %>% 
+      dplyr::summarize(
+        foundation.sp.response = mean(foundation.sp.response, na.rm = TRUE),
+        .groups = "drop")
+  }
+
+  # Add output to list
+  mean_z_list[[site]] <- focal_done }
+
+tab_v02 <- mean_z_list %>% 
+  purrr::map(.f = ~ dplyr::mutate(.data = .x, 
+    dplyr::across(.cols = dplyr::everything(), .fns = as.character))) %>% 
+  purrr::imap(.f = ~ dplyr::mutate(.data = .x, site = .y,
     .before = dplyr::everything())) %>% 
-  purrr::map(.f = ~ dplyr::select(.data = .x, -dplyr::starts_with("group"))) %>% 
-  purrr::map(.f = ~ dplyr::mutate(.data = .x, dplyr::across(.cols = dplyr::everything(),
-    .fns = ~ as.character(.)))) %>% 
-  purrr::list_rbind()
+  purrr::list_rbind() 
 
 # Check structure
-dplyr::glimpse(pred_v01)
+dplyr::glimpse(tab_v02)
 
 ## -------------------------------------------- ##
 # Export ----
 ## -------------------------------------------- ##
 
-# [Desired output TBD]
+# Make a final object
+tab_v99 <- tab_v01
+
+# Check structure
+dplyr::glimpse(tab_v99)
+
+# Export locally
+write.csv(tab_v99, row.names = FALSE, na = '',
+  file = file.path("data", "02_z-score-table.csv"))
 
 # End ----
