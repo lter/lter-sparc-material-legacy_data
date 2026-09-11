@@ -34,10 +34,19 @@ and_df <- read.csv(file.path("data", "standard", "01_AND_live-dead-wood.csv"))
 # Check structure
 dplyr::glimpse(and_df)
 
+# Scale response/explanatory to Z scores
+and_z <- and_df %>% 
+  dplyr::mutate(
+    tree.growth.m2.indiv.yr_z = scale(and_df$tree.growth.m2.indiv.yr)[, 1],
+    dead.wood.mass.kg.ha_z = scale(and_df$dead.wood.mass.kg.ha)[, 1] )
+
+# Check structure
+dplyr::glimpse(and_z)
+      
 # Fit GLMM and add to list
 glm_list[["AND"]] <- glmmTMB::glmmTMB(
-  tree.growth.m2.indiv.yr ~ dead.wood.mass.kg.ha + (1 | stand),
-  data = and_df, family = stats::gaussian())
+  tree.growth.m2.indiv.yr_z ~ dead.wood.mass.kg.ha_z + (1 | stand),
+  data = and_z, family = stats::gaussian())
 
 ## -------------------------------------------- ##
 # Analyze Bonanza Creek (BNZ) ----
@@ -49,10 +58,19 @@ bnz_df <- read.csv(file.path("data", "standard", "01_BNZ_forest-fire.csv"))
 # Check structure
 dplyr::glimpse(bnz_df)
 
+# Scale response/explanatory to Z scores
+bnz_z <- bnz_df %>% 
+  dplyr::mutate(
+    mean.seeds.m2_z = scale(bnz_df$mean.seeds.m2)[, 1],
+    black.spruce.basal.area.cm2.m2_z = scale(bnz_df$black.spruce.basal.area.cm2.m2)[, 1] )
+
+# Check structure
+dplyr::glimpse(bnz_z)
+    
 # Fit GLMM and add to list
 glm_list[["BNZ"]] <- glmmTMB::glmmTMB(
-  mean.seeds.m2 ~ black.spruce.basal.area.cm2.m2 + (1 | burn/site),
-  data = bnz_df, family = glmmTMB::tweedie(link = "log"))
+  mean.seeds.m2_z ~ black.spruce.basal.area.cm2.m2_z + (1 | burn/site),
+  data = bnz_z, family = stats::gaussian())
 ## [KK]: False convergence warning; tried many alternative options, none of which resolved this.
 ## Proceeding anyway, but with caution; diagnostics dests won't run due to non-convergence
 
@@ -66,10 +84,19 @@ fce_df <- read.csv(file.path("data", "standard", "01_FCE_root-litter.csv"))
 # Check structure
 dplyr::glimpse(fce_df)
 
+# Scale response/explanatory to Z scores
+fce_z <- fce_df %>% 
+  dplyr::mutate(
+    mean.root.production.g.m2.yr_z = scale(fce_df$mean.root.production.g.m2.yr)[, 1],
+    mean.litter.g_z = scale(fce_df$mean.litter.g)[, 1] )
+
+# Check structure
+dplyr::glimpse(fce_z)
+
 # Fit GLMM and add to list
 glm_list[["FCE"]] <- glmmTMB::glmmTMB(
-  mean.root.production.g.m2.yr ~ mean.litter.g + (1 | site),
-  data = fce_df, family = stats::gaussian())
+  mean.root.production.g.m2.yr_z ~ mean.litter.g_z + (1 | site),
+  data = fce_z, family = stats::gaussian())
 
 ## -------------------------------------------- ##
 # Analyze Georgia Coastal Ecosystems (GCE) ----
@@ -82,10 +109,17 @@ gce_df <- read.csv(file.path("data", "standard", "01_GCE_marsh-biomass.csv")) %>
 # Check structure
 dplyr::glimpse(gce_df)
 
+# Scale response/explanatory to Z scores
+gce_z <- gce_df %>% 
+  dplyr::mutate(mean.plant.biomass.g.m2_z = scale(gce_df$mean.plant.biomass.g.m2)[, 1] )
+
+# Check structure
+dplyr::glimpse(gce_z)
+
 # Fit GLMM and add to list
 glm_list[["GCE"]] <- glmmTMB::glmmTMB(
-  mean.plant.biomass.g.m2 ~ disturbance + (1 | site) + (1 | year),
-  data = gce_df, family = stats::gaussian(link = "log"))
+  mean.plant.biomass.g.m2_z ~ disturbance + (1 | site) + (1 | year),
+  data = gce_z, family = stats::gaussian())
 
 ## -------------------------------------------- ##
 # Analyze Harvard Forest (HFR) ----
@@ -98,10 +132,19 @@ hfr_df <- read.csv(file.path("data", "standard", "01_HFR_hemlock-removal.csv")) 
 # Check structure
 dplyr::glimpse(hfr_df)
 
+# Scale response/explanatory to Z scores
+hfr_z <- hfr_df %>% 
+  dplyr::mutate(hemlock.density.ha_z = scale(hfr_df$hemlock.density.ha)[, 1] )
+
+# Check structure
+dplyr::glimpse(hfr_z)
+
 # Fit GLMM and add to list
 glm_list[["HFR"]] <- glmmTMB::glmmTMB(
-  hemlock.density.ha ~ treatment + (1 | block/plot) + (1 | year),
-  data = hfr_df, family = glmmTMB::tweedie(link = "log"))
+  hemlock.density.ha_z ~ treatment + (1 | block/plot) + (1 | year),
+  dispformula = ~ treatment,
+  # (^^^) Allow residual variance to differ by treatment to account for heteroscedasticity
+  data = hfr_z, family = stats::gaussian())
 
 ## -------------------------------------------- ##
 # Analyze Konza Prairie (KNZ) ----
@@ -114,10 +157,17 @@ knz_df <- read.csv(file.path("data", "standard", "01_KNZ_grass.csv")) %>%
 # Check structure
 dplyr::glimpse(knz_df)
 
+# Scale response/explanatory to Z scores
+knz_z <- knz_df %>% 
+  dplyr::mutate(mean.live.grass.g.dm2_z = scale(knz_df$mean.live.grass.g.dm2)[, 1] )
+
+# Check structure
+dplyr::glimpse(knz_z)
+
 # Fit GLMM and add to list
 glm_list[["KNZ"]] <- glmmTMB::glmmTMB(
-  mean.live.grass.g.dm2 ~ burn + (1 | year) + (1 | transect),
-  data = knz_df, family = stats::gaussian(link = "log"))
+  mean.live.grass.g.dm2_z ~ burn + (1 | year) + (1 | transect),
+  data = knz_z, family = stats::gaussian())
 
 ## -------------------------------------------- ##
 # Analyze Luquillo (LUQ) ----
@@ -130,25 +180,42 @@ luq_df <- read.csv(file.path("data", "standard", "01_LUQ_seedlings.csv")) %>%
 # Check structure
 dplyr::glimpse(luq_df)
 
+# Scale response/explanatory to Z scores
+luq_z <- luq_df %>% 
+  dplyr::mutate(seedling.count_z = scale(luq_df$seedling.count)[, 1] )
+
+# Check structure
+dplyr::glimpse(luq_z)
+
 # Fit GLMM and add to list
 glm_list[["LUQ"]] <- glmmTMB::glmmTMB(
-  seedling.count ~ treatment + (1 | block/plot) + (1 | year),
-  data = luq_df, family = glmmTMB::nbinom2)
+  seedling.count_z ~ treatment + (1 | block/plot) + (1 | year),
+  data = luq_z, family = stats::gaussian())
 
 ## -------------------------------------------- ##
 # Analyze Moorea Coral Reef (MCR) ----
 ## -------------------------------------------- ##
 
 # Load data
-mcr_df <- read.csv(file.path("data", "standard", "01_MCR_corals.csv"))
+mcr_df <- read.csv(file.path("data", "standard", "01_MCR_corals.csv")) %>% 
+  dplyr::mutate(year = as.factor(year))
 
 # Check structure
 dplyr::glimpse(mcr_df)
 
+# Scale response/explanatory to Z scores
+mcr_z <- mcr_df %>% 
+  dplyr::mutate(
+    coral.live.percent.change_z = scale(mcr_df$coral.live.percent.change)[, 1],
+    coral.dead.m2.start_z = scale(mcr_df$coral.dead.m2.start)[, 1] )
+
+# Check structure
+dplyr::glimpse(mcr_z)
+
 # Fit GLMM and add to list
 glm_list[["MCR"]] <- glmmTMB::glmmTMB(
-  coral.live.percent.change ~ coral.dead.m2.start + (1 | treatment/plot) + (1 | year),
-  data = mcr_df, family = stats::gaussian())
+  coral.live.percent.change_z ~ coral.dead.m2.start_z + (1 | treatment/plot) + (1 | year),
+  data = mcr_z, family = stats::gaussian())
 
 ## -------------------------------------------- ##
 # Analyze SONGS ----
@@ -161,10 +228,20 @@ songs_df <- read.csv(file.path("data", "standard", "01_SONGS_kelp-holdfasts.csv"
 # Check structure
 dplyr::glimpse(songs_df)
 
+# Scale response/explanatory to Z scores
+songs_z <- songs_df %>% 
+  dplyr::mutate(
+    kelp.recruit.density.m2_z = scale(songs_df$kelp.recruit.density.m2)[, 1],
+    kelp.holdfast.dead.percent.cover_z = scale(songs_df$kelp.holdfast.dead.percent.cover)[, 1] )
+
+# Check structure
+dplyr::glimpse(songs_z)
+
 # Fit GLMM and add to list
 glm_list[["SONGS"]] <- glmmTMB::glmmTMB(
-  kelp.recruit.density.m2 ~ kelp.holdfast.dead.percent.cover + (1 | reef/transect) + (1 | year),
-  data = songs_df, family = glmmTMB::nbinom2(link = "log"))
+  kelp.recruit.density.m2 ~ kelp.holdfast.dead.percent.cover_z + (1 | reef/transect) + (1 | year),
+  ## Note (^^^): response is unscaled, _NOT_ the scaled Z score version!
+  data = songs_z, family = glmmTMB::nbinom2(link = "log"))
 
 ## -------------------------------------------- ##
 # Analyze Virginia Coastal Reserve (VCR) ----
@@ -176,10 +253,19 @@ vcr_df <- read.csv(file.path("data", "standard", "01_VCR_oysters.csv"))
 # Check structure
 dplyr::glimpse(vcr_df)
 
+# Scale response/explanatory to Z scores
+vcr_z <- vcr_df %>% 
+  dplyr::mutate(
+    mean.juvenile.oyster.count.quarter.m2_z = scale(vcr_df$mean.juvenile.oyster.count.quarter.m2)[, 1],
+    mean.dead.oyster.count.quarter.m2_z = scale(vcr_df$mean.dead.oyster.count.quarter.m2)[, 1] )
+
+# Check structure
+dplyr::glimpse(vcr_z)
+
 # Fit GLMM and add to list
 glm_list[["VCR"]] <- glmmTMB::glmmTMB(
-  mean.juvenile.oyster.count.quarter.m2 ~ mean.dead.oyster.count.quarter.m2 + (1 | site) + (1 | year),
-  data = vcr_df, family = stats::Gamma(link = "log"))
+  mean.juvenile.oyster.count.quarter.m2_z ~ mean.dead.oyster.count.quarter.m2_z + (1 | site) + (1 | year),
+  data = vcr_z, family = stats::gaussian())
 
 ## -------------------------------------------- ##
 # Calculate Effect Sizes ----
