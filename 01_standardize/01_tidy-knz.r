@@ -77,7 +77,7 @@ knz_v01 <- dplyr::bind_rows(knz_1y, knz_2y) %>%
 # Check structure
 dplyr::glimpse(knz_v01)
 
-# `Su`mmarize biomass
+# Summarize biomass
 knz_v02 <- knz_v01 %>% 
   dplyr::group_by(source, year, soiltype, transect) %>% 
   dplyr::summarize(lvgrass.mean = mean(lvgrass, na.rm = TRUE),
@@ -106,7 +106,9 @@ dplyr::glimpse(knz_v03)
 
 # Make a final version of the data
 knz_v99 <- knz_v03 %>% 
-  dplyr::rename_with(.fn = ~ tolower(gsub(pattern = "_", replacement = ".", x = .)))
+  dplyr::rename_with(.fn = ~ tolower(gsub(pattern = "_", replacement = ".", x = .))) %>% 
+  dplyr::select(transect, burn = burn.cat, year,
+    mean.live.grass.g.dm2 = lvgrass.mean) ## mass of live grass (g/0.1m2)
 
 # One last structure check
 dplyr::glimpse(knz_v99)

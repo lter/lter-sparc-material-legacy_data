@@ -40,11 +40,8 @@ fce_lit_v03 <- fce_lit_v02 %>%
     .groups = "drop") %>% 
   dplyr::group_by(sitename, plot_id) %>% 
     dplyr::summarize(litter.mean = mean(total_weight, na.rm = TRUE),
-  litter.sd = sd(total_weight, na.rm = TRUE),
-  litter.n = dplyr::n(),
-  litter.se = (litter.sd / sqrt(litter.n)),
-    .groups = "drop") %>% 
-  dplyr::select(-litter.sd, -litter.n)
+  litter.sd = sd(total_weight, na.rm = TRUE) / sqrt(dplyr::n()),
+    .groups = "drop")
 
 # Check structure
 dplyr::glimpse(fce_lit_v03)
@@ -106,7 +103,10 @@ dplyr::glimpse(fce_v02)
 
 # Make a final version of the data
 fce_v99 <- fce_v02 %>% 
-  dplyr::rename_with(.fn = ~ tolower(gsub(pattern = "_", replacement = ".", x = .)))
+  dplyr::rename_with(.fn = ~ tolower(gsub(pattern = "_", replacement = ".", x = .))) %>% 
+  dplyr::select(site = sitename, 
+    mean.litter.g = litter.mean, 
+    mean.root.production.g.m2.yr = root.prod.mean)
 
 # One last structure check
 dplyr::glimpse(fce_v99)

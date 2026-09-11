@@ -39,7 +39,10 @@ dplyr::glimpse(songs_v02)
 
 # Make a final version of the data
 songs_v99 <- songs_v02 %>% 
-  dplyr::rename_with(.fn = ~ tolower(gsub(pattern = "_", replacement = ".", x = .)))
+  dplyr::rename_with(.fn = ~ tolower(gsub(pattern = "_", replacement = ".", x = .))) %>% 
+  dplyr::select(reef = reef.code, transect = transect.option.code, year,
+    kelp.holdfast.dead.percent.cover = dmaho.percent.cover,
+    kelp.recruit.density.m2 = mapy.recruit.density)
 
 # One last structure check
 dplyr::glimpse(songs_v99)

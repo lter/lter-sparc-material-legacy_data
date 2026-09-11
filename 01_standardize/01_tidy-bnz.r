@@ -105,7 +105,10 @@ dplyr::glimpse(bnz_v01)
 
 # Make a final version of the data
 bnz_v99 <- bnz_v01 %>% 
-  dplyr::rename_with(.fn = ~ tolower(gsub(pattern = "_", replacement = ".", x = .)))
+  dplyr::rename_with(.fn = ~ tolower(gsub(pattern = "_", replacement = ".", x = .))) %>% 
+  dplyr::select(burn, site, 
+    black.spruce.basal.area.cm2.m2 = black.spruce.basal.area, 
+    mean.seeds.m2 = seed.total.m2.mean)
 
 # One last structure check
 dplyr::glimpse(bnz_v99)

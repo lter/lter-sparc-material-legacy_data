@@ -98,7 +98,10 @@ dplyr::glimpse(hfr_v05)
 
 # Make a final version of the data
 hfr_v99 <- hfr_v05 %>% 
-  dplyr::rename_with(.fn = ~ tolower(gsub(pattern = "_", replacement = ".", x = .)))
+  dplyr::rename_with(.fn = ~ tolower(gsub(pattern = "_", replacement = ".", x = .))) %>% 
+  dplyr::select(plot, block,
+    treatment = trt, year,
+    hemlock.density.ha = dens.ha.hemlock)
 
 # One last structure check
 dplyr::glimpse(hfr_v99)

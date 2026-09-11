@@ -50,14 +50,11 @@ dplyr::glimpse(gce_v03)
 # Clarify disturbance column and summarize
 gce_v04 <- gce_v03 %>% 
   dplyr::mutate(plot_disturbance = ifelse(plot_disturbance == 1,
-    yes = "yes", no = "no")) %>% 
+    yes = "present", no = "absent")) %>% 
   dplyr::group_by(site, year, plot_disturbance) %>% 
   dplyr::summarize(biomass.mean = mean(total_plant_biomass_m2, na.rm = TRUE),
-    biomass.sd = sd(total_plant_biomass_m2, na.rm = TRUE),
-    biomass.n = dplyr::n(),
-    biomass.se = (biomass.sd / sqrt(biomass.n)),
-    .groups = "drop") %>% 
-  dplyr::select(-biomass.sd, -biomass.n)
+    biomass.se = sd(total_plant_biomass_m2, na.rm = TRUE) / sqrt(dplyr::n()),
+    .groups = "drop")
 
 # Check structure
 dplyr::glimpse(gce_v04)
@@ -68,7 +65,10 @@ dplyr::glimpse(gce_v04)
 
 # Make a final version of the data
 gce_v99 <- gce_v04 %>% 
-  dplyr::rename_with(.fn = ~ tolower(gsub(pattern = "_", replacement = ".", x = .)))
+  dplyr::rename_with(.fn = ~ tolower(gsub(pattern = "_", replacement = ".", x = .))) %>% 
+  dplyr::select(site, year, 
+    disturbance = plot.disturbance, 
+    mean.plant.biomass.g.m2 = biomass.mean)
 
 # One last structure check
 dplyr::glimpse(gce_v99)

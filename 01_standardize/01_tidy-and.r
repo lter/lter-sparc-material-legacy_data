@@ -74,7 +74,10 @@ dplyr::glimpse(and_v03)
 
 # Make a final version of the data
 and_v99 <- and_v03 %>% 
-  dplyr::rename_with(.fn = ~ tolower(gsub(pattern = "_", replacement = ".", x = .)))
+  dplyr::rename_with(.fn = ~ tolower(gsub(pattern = "_", replacement = ".", x = .))) %>% 
+  dplyr::select(stand, 
+    tree.growth.m2.indiv.yr = tree.growth.ind, ## Tree growth (Douglas fir; m2/ind./yr)
+    dead.wood.mass.kg.ha = dw.mass.ha) ## Dead wood mass (kg/ha)
 
 # One last structure check
 dplyr::glimpse(and_v99)

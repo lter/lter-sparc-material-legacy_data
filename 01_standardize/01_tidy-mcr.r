@@ -56,7 +56,7 @@ dplyr::glimpse(mcr_v03)
 # Summarize the coral area info
 mcr_v04 <- mcr_v03 %>% 
   dplyr::group_by(Plot, Treatment, year, coral_status) %>% 
-  dplyr::summarize(coral_m.sq = mean(TagLab.Surf..area * 0.0001, na.rm = TRUE),
+  dplyr::summarize(coral_m.sq = mean((TagLab.Surf..area * 0.0001), na.rm = TRUE),
     .groups = "drop")
 
 # Check structure
@@ -77,11 +77,9 @@ dplyr::glimpse(mcr_v05)
 # Calculate some key metrics within plot
 mcr_v06 <- mcr_v05 %>% 
   dplyr::group_by(Plot) %>% 
-  dplyr::mutate(
-    coral_live_start = dplyr::lag(live, n = 1L),
+  dplyr::mutate(coral_live_start = dplyr::lag(live, n = 1L),
     coral_live_change_pct = ((live - coral_live_start) / coral_live_start) * 100,
-    coral_dead_start = dplyr::lag(dead, n = 1L)
-  ) %>% 
+    coral_dead_start = dplyr::lag(dead, n = 1L)) %>% 
   dplyr::ungroup()
   
 # Check structure
@@ -91,7 +89,8 @@ dplyr::glimpse(mcr_v06)
 mcr_v07 <- mcr_v06 %>% 
   dplyr::filter(!is.na(coral_live_change_pct) & !is.na(coral_dead_start)) %>% 
   dplyr::select(-dead, -live, -coral_live_start) %>% 
-  janitor::clean_names()
+  janitor::clean_names() %>% 
+  dplyr::mutate(treatment = tolower(treatment))
 
 # Check structure
 dplyr::glimpse(mcr_v07)
@@ -102,7 +101,9 @@ dplyr::glimpse(mcr_v07)
 
 # Make a final version of the data
 mcr_v99 <- mcr_v07 %>% 
-  dplyr::rename_with(.fn = ~ tolower(gsub(pattern = "_", replacement = ".", x = .)))
+  dplyr::rename_with(.fn = ~ tolower(gsub(pattern = "_", replacement = ".", x = .))) %>% 
+  dplyr::rename(coral.live.percent.change = coral.live.change.pct,
+    coral.dead.m2.start = coral.dead.start)
 
 # One last structure check
 dplyr::glimpse(mcr_v99)

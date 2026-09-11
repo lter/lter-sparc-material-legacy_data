@@ -75,11 +75,8 @@ dplyr::glimpse(vcr_v04)
 vcr_v05 <- vcr_v04 %>% 
   dplyr::group_by(year, site, species) %>% 
   dplyr::summarize(sp.mean = mean(species_count, na.rm = TRUE),
-    sp.sd = sd(species_count, na.rm = TRUE),
-    sp.n = dplyr::n(),
-    sp.se = (sp.sd / sqrt(sp.n)),
-    .groups = "drop") %>% 
-    dplyr::select(-sp.sd, -sp.n)
+    sp.se = sd(species_count, na.rm = TRUE) / (sqrt(dplyr::n())),
+    .groups = "drop")
 
 # Check structure
 dplyr::glimpse(vcr_v05)
@@ -107,7 +104,10 @@ dplyr::glimpse(vcr_v06)
 
 # Make a final version of the data
 vcr_v99 <- vcr_v06 %>% 
-  dplyr::rename_with(.fn = ~ tolower(gsub(pattern = "_", replacement = ".", x = .)))
+  dplyr::rename_with(.fn = ~ tolower(gsub(pattern = "_", replacement = ".", x = .))) %>% 
+  dplyr::select(site, year, 
+    mean.dead.oyster.count.quarter.m2 = dead.mean, 
+    mean.juvenile.oyster.count.quarter.m2 = juvenile.mean)
 
 # One last structure check
 dplyr::glimpse(vcr_v99)
