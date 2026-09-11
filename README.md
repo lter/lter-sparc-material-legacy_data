@@ -7,7 +7,3 @@ Principal Investigators: _Dr. Kai L. Kopecky, Dr. Katharine N. Suding, Dr. Ty A.
 1. `00_download/` -- Downloads raw data from the [Environmental Data Initiative](https://edirepository.org/) (EDI)
 2. `01_standardize/` -- Does site-specific wrangling to generate analysis-ready data
 3. `02_make-table.r` -- Makes cross-site table for data paper
-
-## Supplementary Resources
-
-LTER Scientific Computing Team [website](https://lter.github.io/scicomp/) & NCEAS [Resources for Working Groups](https://www.nceas.ucsb.edu/working-group-resources)
