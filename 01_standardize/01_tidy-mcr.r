@@ -6,6 +6,7 @@
 
 ## !!! DATA SOURCE NOTE !!!
 # Data taken from Google Drive (_not_ EDI)
+## Data downloaded from Google Drive by `_TEMPORARY_drive-download.r`
 ## !!! SEE ABOVE !!!
 
 # Load libraries

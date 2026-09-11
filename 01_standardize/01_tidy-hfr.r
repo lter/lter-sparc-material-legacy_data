@@ -3,7 +3,11 @@
 ## -------------------------------------------- ##
 # Purpose
 ## Get these data into a standard format with that of other sites
-## Data downloaded from EDI by `00_download-hfr.r`
+
+## !!! DATA SOURCE NOTE !!!
+# Data taken from Google Drive (_not_ EDI)
+## Data downloaded from Google Drive by `_TEMPORARY_drive-download.r`
+## !!! SEE ABOVE !!!
 
 # Load libraries
 # install.packages("librarian")
@@ -19,23 +23,23 @@ rm(list = ls()); gc()
 # Tidy Dead Wood Data ----
 ## -------------------------------------------- ##
 
-# Load the relevant file
-hfr_dead_v01 <- read.csv(file.path("data", "raw", "00_HFR__hf125-01-cwd.csv"))
+# # Load the relevant file
+# hfr_dead_v01 <- read.csv(file.path("data", "raw", "00_HFR__hf125-01-cwd.csv"))
 
-# Check structure
-dplyr::glimpse(hfr_dead_v01)
+# # Check structure
+# dplyr::glimpse(hfr_dead_v01)
 
 ## -------------------------------------------- ##
 # Tidy Sapling Data ----
 ## -------------------------------------------- ##
 
-# Read in the relevant file(s)
-hfr_sap_v01 <- read.csv(file.path("data", "raw", "00_HFR__hf106-05-sapling.csv"))
-hfr_tree_v01 <- read.csv(file.path("data", "raw", "00_HFR__hf126-02-tree.csv"))
+# # Read in the relevant file(s)
+# hfr_sap_v01 <- read.csv(file.path("data", "raw", "00_HFR__hf106-05-sapling.csv"))
+# hfr_tree_v01 <- read.csv(file.path("data", "raw", "00_HFR__hf126-02-tree.csv"))
 
-# Check structure
-dplyr::glimpse(hfr_sap_v01)
-dplyr::glimpse(hfr_tree_v01)
+# # Check structure
+# dplyr::glimpse(hfr_sap_v01)
+# dplyr::glimpse(hfr_tree_v01)
 
 
 
