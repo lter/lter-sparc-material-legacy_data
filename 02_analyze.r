@@ -5,6 +5,12 @@
 ## Analyze data and extract Z scores/other model metrics
 ## Works for all sites (but depends on outputs of respective `01` scripts)
 
+# Need to quickly re-generate all standardized data files?
+# purrr::walk(.x = dir("01_standardize", pattern = "*.r"), 
+#   .f = ~ source(file.path("01_standardize", .x)))
+### Note you'll need to have all the raw inputs locally downloaded already
+### If you want the above to work
+
 # Load libraries
 # install.packages("librarian")
 librarian::shelf(tidyverse, glmmTMB, broom.mixed, ggeffects)
@@ -30,7 +36,7 @@ dplyr::glimpse(and_df)
 
 # Fit GLMM and add to list
 glm_list[["AND"]] <- glmmTMB::glmmTMB(
-  tree.growth.ind ~ dw.mass.ha + (1 | stand),
+  tree.growth.m2.indiv.yr ~ dead.wood.mass.kg.ha + (1 | stand),
   data = and_df, family = stats::gaussian())
 
 ## -------------------------------------------- ##
@@ -45,7 +51,7 @@ dplyr::glimpse(bnz_df)
 
 # Fit GLMM and add to list
 glm_list[["BNZ"]] <- glmmTMB::glmmTMB(
-  seed.total.m2.mean ~ black.spruce.basal.area + (1 | burn/site),
+  mean.seeds.m2 ~ black.spruce.basal.area.cm2.m2 + (1 | burn/site),
   data = bnz_df, family = glmmTMB::tweedie(link = "log"))
 ## [KK]: False convergence warning; tried many alternative options, none of which resolved this.
 ## Proceeding anyway, but with caution; diagnostics dests won't run due to non-convergence
@@ -62,7 +68,7 @@ dplyr::glimpse(fce_df)
 
 # Fit GLMM and add to list
 glm_list[["FCE"]] <- glmmTMB::glmmTMB(
-  root.prod.mean ~ litter.mean + (1 | sitename),
+  mean.root.production.g.m2.yr ~ mean.litter.g + (1 | site),
   data = fce_df, family = stats::gaussian())
 
 ## -------------------------------------------- ##
@@ -71,14 +77,14 @@ glm_list[["FCE"]] <- glmmTMB::glmmTMB(
 
 # Load data
 gce_df <- read.csv(file.path("data", "standard", "01_GCE_marsh-biomass.csv")) %>% 
-  dplyr::mutate(plot.disturbance = ordered(plot.disturbance, levels = c("no", "yes")))
+  dplyr::mutate(disturbance = ordered(disturbance, levels = c("absent", "present")))
 
 # Check structure
 dplyr::glimpse(gce_df)
 
 # Fit GLMM and add to list
 glm_list[["GCE"]] <- glmmTMB::glmmTMB(
-  biomass.mean ~ plot.disturbance + (1 | site) + (1 | year),
+  mean.plant.biomass.g.m2 ~ disturbance + (1 | site) + (1 | year),
   data = gce_df, family = stats::gaussian(link = "log"))
 
 ## -------------------------------------------- ##
@@ -87,14 +93,14 @@ glm_list[["GCE"]] <- glmmTMB::glmmTMB(
 
 # Load data
 hfr_df <- read.csv(file.path("data", "standard", "01_HFR_hemlock-removal.csv")) %>% 
-  dplyr::mutate(trt = factor(trt, levels = c("logged", "girdled")))
+  dplyr::mutate(treatment = factor(treatment, levels = c("logged", "girdled")))
 
 # Check structure
 dplyr::glimpse(hfr_df)
 
 # Fit GLMM and add to list
 glm_list[["HFR"]] <- glmmTMB::glmmTMB(
-  dens.ha.hemlock ~ trt + (1 | block/plot) + (1 | year),
+  hemlock.density.ha ~ treatment + (1 | block/plot) + (1 | year),
   data = hfr_df, family = glmmTMB::tweedie(link = "log"))
 
 ## -------------------------------------------- ##
@@ -103,14 +109,14 @@ glm_list[["HFR"]] <- glmmTMB::glmmTMB(
 
 # Load data
 knz_df <- read.csv(file.path("data", "standard", "01_KNZ_grass.csv")) %>% 
-  dplyr::mutate(burn.cat = as.factor(burn.cat))
+  dplyr::mutate(burn = as.factor(burn))
 
 # Check structure
 dplyr::glimpse(knz_df)
 
 # Fit GLMM and add to list
 glm_list[["KNZ"]] <- glmmTMB::glmmTMB(
-  lvgrass.mean ~ burn.cat + (1 | year) + (1 | transect),
+  mean.live.grass.g.dm2 ~ burn + (1 | year) + (1 | transect),
   data = knz_df, family = stats::gaussian(link = "log"))
 
 ## -------------------------------------------- ##
@@ -141,7 +147,7 @@ dplyr::glimpse(mcr_df)
 
 # Fit GLMM and add to list
 glm_list[["MCR"]] <- glmmTMB::glmmTMB(
-  coral.live.change.pct ~ coral.dead.start + (1 | treatment/plot) + (1 | year),
+  coral.live.percent.change ~ coral.dead.m2.start + (1 | treatment/plot) + (1 | year),
   data = mcr_df, family = stats::gaussian())
 
 ## -------------------------------------------- ##
@@ -157,7 +163,7 @@ dplyr::glimpse(songs_df)
 
 # Fit GLMM and add to list
 glm_list[["SONGS"]] <- glmmTMB::glmmTMB(
-  mapy.recruit.density ~ dmaho.percent.cover + (1 | reef.code / transect.option.code) + (1 | year),
+  kelp.recruit.density.m2 ~ kelp.holdfast.dead.percent.cover + (1 | reef/transect) + (1 | year),
   data = songs_df, family = glmmTMB::nbinom2(link = "log"))
 
 ## -------------------------------------------- ##
@@ -172,7 +178,7 @@ dplyr::glimpse(vcr_df)
 
 # Fit GLMM and add to list
 glm_list[["VCR"]] <- glmmTMB::glmmTMB(
-  juvenile.mean ~ dead.mean + (1 | site) + (1 | year),
+  mean.juvenile.oyster.count.quarter.m2 ~ mean.dead.oyster.count.quarter.m2 + (1 | site) + (1 | year),
   data = vcr_df, family = stats::Gamma(link = "log"))
 
 ## -------------------------------------------- ##
