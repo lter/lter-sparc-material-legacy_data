@@ -67,7 +67,8 @@ dplyr::glimpse(gce_v04)
 ## -------------------------------------------- ##
 
 # Make a final version of the data
-gce_v99 <- gce_v04
+gce_v99 <- gce_v04 %>% 
+  dplyr::rename_with(.fn = ~ tolower(gsub(pattern = "_", replacement = ".", x = .)))
 
 # One last structure check
 dplyr::glimpse(gce_v99)
